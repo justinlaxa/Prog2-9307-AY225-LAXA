@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Prelim Grade Calculator</title>
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #f5f1ec, #e8eef3);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        padding-top: 40px;
+        margin: 0;
+    }
+
+    .container {
+        display: flex;
+        gap: 30px;
+        max-width: 1000px;
+        width: 100%;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 28px;
+        padding: 32px;
+        flex: 1;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    .panel h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .section-title {
+        margin-top: 22px;
+        margin-bottom: 12px;
+        font-weight: 700;
+        font-size: 17px;
+        color: #34495e;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 6px;
+    }
+
+    .input-row {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 18px;
+    }
+
+    .input-row label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #34495e;
+    }
+
+    .input-row input {
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid #dcdcdc;
+        font-size: 16px;
+    }
+
+    .btn {
+        padding: 13px 22px;
+        border: none;
+        border-radius: 22px;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(to right, #3498db, #2980b9);
+    }
+
+    .btn-clear {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .result-row {
+        margin-bottom: 14px;
+        font-size: 16px;
+        color: #2c3e50;
+    }
+
+    .remark {
+        font-weight: bold;
+        margin-top: 18px;
+        font-size: 17px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <div class="panel">
+        <h2>Student Inputs</h2>
+
+        <div class="input-row">
+            <label for="attendance">Number of Absences 🎯</label>
+            <input type="number" id="attendance" min="0">
+        </div>
+
+        <div class="input-row">
+            <label for="lab1">Lab Work 1 🧪</label>
+            <input type="number" id="lab1" min="0" max="100">
+        </div>
+
+        <div class="input-row">
+            <label for="lab2">Lab Work 2 🧪</label>
+            <input type="number" id="lab2" min="0" max="100">
+        </div>
+
+        <div class="input-row">
+            <label for="lab3">Lab Work 3 🧪</label>
+            <input type="number" id="lab3" min="0" max="100">
+        </div>
+
+        <div style="margin-top:22px;">
+            <button class="btn btn-gradient" id="computeBtn">Compute Grades</button>
+            <button class="btn btn-clear" id="clearBtn">Clear</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Results</h2>
+
+        <div class="result-row" id="attendanceResult">Attendance: —</div>
+        <div class="result-row" id="labAvgResult">Lab Average: —</div>
+        <div class="result-row" id="classStandingResult">Class Standing: —</div>
+
+        <div class="section-title">Required Exam Scores</div>
+        <div class="result-row" id="passExamResult">To Pass (75): —</div>
+        <div class="result-row" id="excellentExamResult">To Excellent (100): —</div>
+
+        <div class="remark" id="remarksResult">Remarks: —</div>
+    </div>
+
+</div>
+
+<script>
+    const attendanceField = document.getElementById('attendance');
+    const lab1Field = document.getElementById('lab1');
+    const lab2Field = document.getElementById('lab2');
+    const lab3Field = document.getElementById('lab3');
+
+    const attendanceResult = document.getElementById('attendanceResult');
+    const labAvgResult = document.getElementById('labAvgResult');
+    const classStandingResult = document.getElementById('classStandingResult');
+    const passExamResult = document.getElementById('passExamResult');
+    const excellentExamResult = document.getElementById('excellentExamResult');
+    const remarksResult = document.getElementById('remarksResult');
+
+    const computeBtn = document.getElementById('computeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function clamp(value){
+        return Math.min(100, Math.max(0, value));
+    }
+
+    function computeGrades() {
+        const absences = parseInt(attendanceField.value);
+        const lab1 = parseInt(lab1Field.value);
+        const lab2 = parseInt(lab2Field.value);
+        const lab3 = parseInt(lab3Field.value);
+
+        if (
+            isNaN(absences) || absences < 0 ||
+            isNaN(lab1) || lab1 < 0 || lab1 > 100 ||
+            isNaN(lab2) || lab2 < 0 || lab2 > 100 ||
+            isNaN(lab3) || lab3 < 0 || lab3 > 100
+        ) {
+            remarksResult.textContent = "Remarks: Invalid input ❌";
+            remarksResult.style.color = "red";
+            return;
+        }
+
+        if (absences >= 4) {
+            attendanceResult.textContent = "Attendance: Failed";
+            labAvgResult.textContent = "Lab Average: —";
+            classStandingResult.textContent = "Class Standing: —";
+            passExamResult.textContent = "To Pass (75): —";
+            excellentExamResult.textContent = "To Excellent (100): —";
+            remarksResult.textContent = "Remarks: Failed due to absences ❌";
+            remarksResult.style.color = "red";
+            return;
+        }
+
+        const attendanceScore = clamp(100 - (absences * 10));
+        const attendanceWeighted = attendanceScore * 0.40;
+
+        const labAvg = Math.round((lab1 + lab2 + lab3) / 3);
+        const labWeighted = labAvg * 0.60;
+
+        const classStanding = Math.round(attendanceWeighted + labWeighted);
+
+        const requiredPassExam = Math.round(
+            clamp((75 - (classStanding * 0.30)) / 0.70)
+        );
+
+        const requiredExcellentExam = Math.round(
+            clamp((100 - (classStanding * 0.30)) / 0.70)
+        );
+
+        attendanceResult.textContent = `Attendance: ${attendanceScore}`;
+        labAvgResult.textContent = `Lab Average: ${labAvg}`;
+        classStandingResult.textContent = `Class Standing: ${classStanding}`;
+        passExamResult.textContent = `To Pass (75): ${requiredPassExam}`;
+        excellentExamResult.textContent = `To Excellent (100): ${requiredExcellentExam}`;
+
+        if(classStanding >= 75){
+            remarksResult.textContent = "Remarks: Good standing ✅";
+            remarksResult.style.color = "green";
+        } else {
+            remarksResult.textContent = "Remarks: Below passing ❌";
+            remarksResult.style.color = "red";
+        }
+    }
+
+    function clearFields(){
+        attendanceField.value = "";
+        lab1Field.value = "";
+        lab2Field.value = "";
+        lab3Field.value = "";
+        attendanceResult.textContent = "Attendance: —";
+        labAvgResult.textContent = "Lab Average: —";
+        classStandingResult.textContent = "Class Standing: —";
+        passExamResult.textContent = "To Pass (75): —";
+        excellentExamResult.textContent = "To Excellent (100): —";
+        remarksResult.textContent = "Remarks: —";
+        remarksResult.style.color = "#2c3e50";
+    }
+
+    computeBtn.addEventListener('click', computeGrades);
+    clearBtn.addEventListener('click', clearFields);
+
+    attendanceField.addEventListener('keydown', e => {
+        if(e.key === "Enter") lab1Field.focus();
+    });
+    lab1Field.addEventListener('keydown', e => {
+        if(e.key === "Enter") lab2Field.focus();
+    });
+    lab2Field.addEventListener('keydown', e => {
+        if(e.key === "Enter") lab3Field.focus();
+    });
+    lab3Field.addEventListener('keydown', e => {
+        if(e.key === "Enter") computeGrades();
+    });
+</script>
+</body>
+</html>
