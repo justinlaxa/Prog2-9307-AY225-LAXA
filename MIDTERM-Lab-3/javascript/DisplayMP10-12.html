@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pearson VUE — MP10 · MP11 · MP12</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #0b0e14;
+  --surface: #111620;
+  --border:  #1e2740;
+  --accent:  #00d4ff;
+  --accent2: #ff6b35;
+  --pass:    #22c55e;
+  --fail:    #ef4444;
+  --text:    #e2e8f0;
+  --muted:   #64748b;
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Syne', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrapper{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:40px 24px 100px}
+
+header{text-align:center;margin-bottom:48px;animation:fadeDown .6s ease both}
+.label{font-family:var(--mono);font-size:.72rem;letter-spacing:.25em;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;color:#fff;line-height:1.05}
+h1 em{font-style:normal;color:var(--accent)}
+header p{margin-top:10px;color:var(--muted);font-size:.9rem}
+
+.statbar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:40px;animation:fadeUp .5s .1s ease both}
+.stat{font-family:var(--mono);font-size:.78rem;padding:6px 16px;border-radius:999px;border:1px solid;white-space:nowrap}
+.stat.blue  {border-color:rgba(0,212,255,.3); color:var(--accent); background:rgba(0,212,255,.07)}
+.stat.green {border-color:rgba(34,197,94,.3); color:var(--pass);   background:rgba(34,197,94,.07)}
+.stat.red   {border-color:rgba(239,68,68,.3); color:var(--fail);   background:rgba(239,68,68,.07)}
+.stat.orange{border-color:rgba(255,107,53,.3);color:var(--accent2);background:rgba(255,107,53,.07)}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);animation:fadeUp .5s .15s ease both}
+.tab-btn{font-family:var(--mono);font-size:.78rem;letter-spacing:.1em;padding:11px 22px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s,border-color .2s;text-transform:uppercase}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.panel{display:none;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;padding:28px;animation:fadeUp .3s ease both}
+.panel.active{display:block}
+.panel-title{font-size:1rem;font-weight:600;color:#fff;margin-bottom:4px}
+.panel-sub{font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:22px}
+
+/* ── MP12: plain console-style table matching Java output ── */
+.console-wrap{overflow-x:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:20px 18px}
+.console-out{font-family:var(--mono);font-size:.78rem;color:var(--text);white-space:pre;line-height:1.6}
+.console-out .hdr{color:var(--accent)}      /* header row */
+.console-out .sep{color:var(--muted)}       /* separator dashes */
+.console-out .pass-row .col-result{color:var(--pass)}
+.console-out .fail-row .col-result{color:var(--fail)}
+
+/* ── MP10 / MP11 shared ── */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.8rem;min-width:600px}
+thead tr{background:rgba(0,212,255,.05)}
+thead th{padding:10px 14px;text-align:left;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(30,39,64,.7);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(0,212,255,.03)}
+tbody td{padding:9px 14px;vertical-align:middle}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.07em}
+.badge.pass{background:rgba(34,197,94,.12);color:var(--pass);border:1px solid rgba(34,197,94,.25)}
+.badge.fail{background:rgba(239,68,68,.12);color:var(--fail);border:1px solid rgba(239,68,68,.25)}
+.badge.dup {background:rgba(255,107,53,.12);color:var(--accent2);border:1px solid rgba(255,107,53,.3)}
+
+.no-dups{display:flex;align-items:center;gap:14px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:22px 26px;font-family:var(--mono);font-size:.88rem;color:var(--pass)}
+
+.freq-section{margin-bottom:38px}
+.freq-section h3{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.freq-row{display:grid;grid-template-columns:210px 1fr 55px 58px;align-items:center;gap:10px;padding:5px 0;font-family:var(--mono);font-size:.77rem}
+.freq-label{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.freq-bar-track{height:7px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden}
+.freq-bar{height:100%;border-radius:999px;width:0;transition:width .9s cubic-bezier(.16,1,.3,1)}
+.freq-cnt{color:var(--muted);text-align:right}
+.freq-pct{color:var(--accent);text-align:right}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="label">Pearson VUE · University of Perpetual Help System - Molino</div>
+    <h1>Exam Results <em>Analyzer</em></h1>
+    <p>MP10 — Duplicates &nbsp;·&nbsp; MP11 — Frequency &nbsp;·&nbsp; MP12 — Table</p>
+  </header>
+
+  <div class="statbar" id="statbar"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="mp12">MP12 · Table</button>
+    <button class="tab-btn"        data-tab="mp10">MP10 · Duplicates</button>
+    <button class="tab-btn"        data-tab="mp11">MP11 · Frequency</button>
+  </div>
+
+  <div class="panel active" id="panel-mp12">
+    <div class="panel-title">MP12 — Formatted Table Output</div>
+    <div class="panel-sub">Output matches Java: each column printed at 15-char fixed width, separated by a dash line</div>
+    <div id="mp12-content"></div>
+  </div>
+
+  <div class="panel" id="panel-mp10">
+    <div class="panel-title">MP10 — Detect Duplicate Records</div>
+    <div class="panel-sub">Flags rows sharing the same Candidate · Exam · Date · Score · Result</div>
+    <div id="mp10-content"></div>
+  </div>
+
+  <div class="panel" id="panel-mp11">
+    <div class="panel-title">MP11 — Frequency Count by Column</div>
+    <div class="panel-sub">Value distribution across Exam, Result, and Candidate Type columns</div>
+    <div id="mp11-content"></div>
+  </div>
+
+</div>
+<script>
+/* ═══════════════════════════════════════════════════════
+   HARDCODED DATASET — professor's CSV embedded directly
+   Column layout (12 cols):
+     0=Candidate  1=Type  2=Column1(empty)
+     3=Exam  4=Language  5=Date  6=Score  7=Result  8=TimeUsed
+     9-11=trailing empty
+   ═══════════════════════════════════════════════════════ */
+const CSV_DATA = `Candidate,Student/ Faculty/ NTE,Column1,Exam,Language,Exam Date,Score,Result,Time Used,,,
+"Nanete,Ennor",Student,,Python,English,03/14/2026,860,PASS,36 min 38 sec,,,
+"Fredelia,Macquire",Student,,Cybersecurity,English,03/14/2026,937,PASS,37 min 4 sec,,,
+"Marijo,Whorlton",Student,,Artificial Intelligence,English,03/14/2026,763,PASS,50 min 45 sec,,,
+"Chaunce,Danet",Student,,Data Analytics,English,03/14/2026,700,PASS,56 min 58 sec,,,
+"Genia,Bache",Student,,Data Analytics,English,03/14/2026,824,PASS,57 min 6 sec,,,
+"Clare,Morando",Student,,Information Technology Specialist in Networking,English,03/14/2026,644,FAIL,62 min 32 sec,,,
+"Katalin,Martins",Student,,Data Analytics,English,03/14/2026,841,PASS,57 min 24 sec,,,
+"Merrick,Danat",Student,,HTML and CSS,English,03/14/2026,859,PASS,50 min 4 sec,,,
+"Laurianne,Village",Student,,Artificial Intelligence,English,03/14/2026,294,FAIL,51 min 1 sec,,,
+"Ruthi,Pancoust",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,806,PASS,49 min 21 sec,,,
+"Bealle,Rentz",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,672,FAIL,50 min 25 sec,,,
+"Agna,Euels",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,672,FAIL,50 min 25 sec,,,
+"Rainer,Rubinowitz",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,824,PASS,49 min 44 sec,,,
+"Herta,Elgy",Student,,Python,English,03/14/2026,760,PASS,53 min 29 sec,,,
+"Lauralee,Chastey",Student,,Artificial Intelligence,English,03/14/2026,842,PASS,53 min 2 sec,,,
+"Rhianon,Tailby",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,700,PASS,50 min 12 sec,,,
+"Justen,Ghidetti",Student,,Information Technology Specialist in Networking,English,03/14/2026,560,FAIL,58 min 15 sec,,,
+"Thaddus,Hinstock",Student,,Information Technology Specialist in Networking,English,03/14/2026,476,FAIL,57 min 32 sec,,,
+"Margarete,Blunkett",Student,,Information Technology Specialist in Networking,English,03/14/2026,800,PASS,52 min 37 sec,,,
+"Kevon,Roubottom",Student,,HTML and CSS,English,03/14/2026,735,PASS,49 min 49 sec,,,
+"Mabelle,Dimbylow",Student,,Python,English,03/14/2026,860,PASS,52 min 32 sec,,,
+"Opaline,Greenough",Student,,Data Analytics,English,03/14/2026,929,PASS,33 min 33 sec,,,
+"Cicely,Gentil",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,771,PASS,45 min 5 sec,,,
+"Mano,McPeeters",Student,,Information Technology Specialist in Networking,English,03/14/2026,616,FAIL,50 min 8 sec,,,
+"Stavros,Althrope",Student,,Information Technology Specialist in Networking,English,03/14/2026,476,FAIL,50 min 13 sec,,,
+"Udell,Farris",Student,,JavaScript,English,03/14/2026,392,FAIL,49 min 41 sec,,,
+"Annmaria,Buffery",Student,,HTML and CSS,English,03/14/2026,487,FAIL,51 min 0 sec,,,
+"Zeke,Grinham",Student,,HTML and CSS,English,03/14/2026,788,PASS,50 min 29 sec,,,
+"Glennie,Barenski",Student,,HTML and CSS,English,03/14/2026,876,PASS,36 min 34 sec,,,
+"Gill,Rintoul",Student,,Information Technology Specialist in Networking,English,03/14/2026,588,FAIL,43 min 47 sec,,,
+"Moe,Treadway",Student,,Information Technology Specialist in Networking,English,03/14/2026,760,PASS,44 min 44 sec,,,
+"Clara,Pollastro",Student,,Cybersecurity,English,03/14/2026,732,PASS,40 min 18 sec,,,
+"Chadd,Rees",Student,,Cybersecurity,English,03/14/2026,811,PASS,42 min 26 sec,,,
+"Gianina,Rostron",Student,,Information Technology Specialist in Networking,English,03/14/2026,800,PASS,45 min 55 sec,,,
+"Osbourn,Hallitt",Student,,Python,English,03/14/2026,840,PASS,34 min 8 sec,,,
+"Bobby,Walklett",Student,,HTML and CSS,English,03/14/2026,609,FAIL,50 min 23 sec,,,
+"Borg,O'Mailey",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,806,PASS,22 min 2 sec,,,
+"Timoteo,Semarke",Student,,HTML and CSS,English,03/14/2026,548,FAIL,46 min 44 sec,,,
+"Ginevra,Checcucci",Student,,Databases,English,03/14/2026,871,PASS,33 min 13 sec,,,
+"Babbie,Wick",Student,,Python,English,03/14/2026,800,PASS,38 min 0 sec,,,
+"Katy,Acott",Student,,Databases,English,03/14/2026,786,PASS,36 min 26 sec,,,
+"Korie,Hindhaugh",Student,,Information Technology Specialist in Networking,English,03/14/2026,588,FAIL,36 min 41 sec,,,
+"Loralee,McKibben",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,841,PASS,40 min 3 sec,,,
+"Derk,Rounce",Student,,Data Analytics,English,03/14/2026,771,PASS,34 min 42 sec,,,
+"Andrei,Lancley",Student,,Databases,English,03/14/2026,979,PASS,49 min 20 sec,,,
+"Myrilla,Sheeran",Student,,Information Technology Specialist in Networking,English,03/14/2026,672,FAIL,32 min 30 sec,,,
+"Brander,MacGinney",Student,,HTML and CSS,English,03/14/2026,929,PASS,48 min 24 sec,,,
+"Leisha,Masden",Student,,Cybersecurity,English,03/14/2026,905,PASS,45 min 24 sec,,,
+"Malvin,Allchin",Student,,Cybersecurity,English,03/14/2026,858,PASS,45 min 33 sec,,,
+"Hendrik,Le Prevost",Student,,Cybersecurity,English,03/14/2026,842,PASS,45 min 3 sec,,,
+"Herve,Tubble",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,929,PASS,20 min 46 sec,,,
+"Fitz,Stopp",Student,,JavaScript,English,03/14/2026,672,FAIL,49 min 55 sec,,,
+"Juli,McCully",Student,,JavaScript,English,03/14/2026,700,PASS,48 min 37 sec,,,
+"Warden,Damerell",Student,,Data Analytics,English,03/14/2026,859,PASS,50 min 31 sec,,,
+"Jody,Coye",Student,,Artificial Intelligence,English,03/14/2026,953,PASS,49 min 30 sec,,,
+"Gray,Lockier",Student,,Python - Next Generation,English,03/14/2026,761,PASS,37 min 10 sec,,,
+"Cori,Spurling",Student,,Network Security,English,03/14/2026,671,FAIL,14 min 53 sec,,,
+"Kippie,Kivell",Student,,Python,English,03/14/2026,840,PASS,50 min 1 sec,,,
+"Babbette,Jenik",Student,,HTML and CSS,English,03/14/2026,806,PASS,48 min 15 sec,,,
+"Danny,Cleghorn",Student,,Data Analytics,English,03/14/2026,771,PASS,49 min 57 sec,,,
+"Rivy,Inglish",Student,,HTML and CSS,English,03/14/2026,947,PASS,49 min 59 sec,,,
+"Archibald,Barthropp",Student,,HTML and CSS,English,03/14/2026,859,PASS,50 min 22 sec,,,
+"Heindrick,Kaas",Student,,HTML and CSS,English,03/14/2026,824,PASS,49 min 59 sec,,,
+"Leonora,Drezzer",Student,,HTML and CSS,English,03/14/2026,947,PASS,48 min 57 sec,,,
+"Patrizia,Paaso",Student,,Software Development,English,03/14/2026,944,PASS,66 min 57 sec,,,
+"Myrtia,Windram",Student,,Artificial Intelligence,English,03/14/2026,795,PASS,55 min 36 sec,,,
+"Dermot,Kellet",Student,,Cybersecurity,English,03/14/2026,921,PASS,65 min 30 sec,,,
+"Daphene,Clemenceau",Student,,HTML5 Application Development,English,03/14/2026,850,PASS,53 min 2 sec,,,
+"Granny,MacKellen",Student,,Cybersecurity,English,03/14/2026,874,PASS,68 min 9 sec,,,
+"Michael,Croughan",Student,,HTML5 Application Development,English,03/14/2026,871,PASS,50 min 25 sec,,,
+"Kelvin,Van Saltsberg",Student,,Information Technology Specialist in Networking,English,03/14/2026,900,PASS,56 min 5 sec,,,
+"Marleen,Rivett",Student,,HTML and CSS,English,03/14/2026,771,PASS,61 min 56 sec,,,
+"Shel,Luciani",Student,,Cybersecurity,English,03/14/2026,858,PASS,48 min 39 sec,,,
+"Claudio,Fowkes",Student,,HTML and CSS,English,03/14/2026,517,FAIL,48 min 8 sec,,,
+"Alidia,Avramow",Student,,Cybersecurity,English,03/14/2026,889,PASS,50 min 21 sec,,,
+"Nicolle,Boldry",Student,,HTML and CSS,English,03/14/2026,841,PASS,51 min 30 sec,,,
+"Anderea,Chatwin",Student,,JavaScript,English,03/14/2026,960,PASS,54 min 3 sec,,,
+"Arin,Bech",Student,,JavaScript,English,03/14/2026,760,PASS,50 min 6 sec,,,
+"Annelise,Manhare",Student,,JavaScript,English,03/14/2026,900,PASS,54 min 4 sec,,,
+"Jedediah,Leynham",Student,,JavaScript,English,03/14/2026,860,PASS,52 min 33 sec,,,
+"Garfield,Harrold",Student,,JavaScript,English,03/14/2026,560,FAIL,54 min 4 sec,,,
+"Isacco,Sebring",Student,,JavaScript,English,03/14/2026,616,FAIL,52 min 4 sec,,,
+"Benni,Prendeguest",Student,,JavaScript,English,03/14/2026,780,PASS,49 min 58 sec,,,
+"Cordelia,Lishmund",Student,,JavaScript,English,03/14/2026,920,PASS,49 min 49 sec,,,
+"Alene,Devonald",Student,,Cybersecurity,English,03/14/2026,811,PASS,12 min 20 sec,,,
+"Braden,Woolerton",Student,,JavaScript,English,03/14/2026,880,PASS,49 min 45 sec,,,
+"Dew,Dumbelton",Student,,Artificial Intelligence,English,03/14/2026,921,PASS,45 min 6 sec,,,
+"Margery,Mummery",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,841,PASS,42 min 2 sec,,,
+"Cullan,McEnhill",Student,,JavaScript,English,03/14/2026,740,PASS,17 min 46 sec,,,
+"Marshall,Napoli",Student,,HTML and CSS,English,03/14/2026,735,PASS,51 min 15 sec,,,
+"Hyacinthie,Willoughey",Student,,HTML and CSS,English,03/14/2026,947,PASS,51 min 15 sec,,,
+"Eldridge,Falconer",Student,,HTML and CSS,English,03/14/2026,912,PASS,51 min 10 sec,,,
+"Jarib,Logsdale",Student,,Java,English,03/14/2026,760,PASS,49 min 53 sec,,,
+"Abey,Fice",Student,,HTML and CSS,English,03/14/2026,517,FAIL,50 min 21 sec,,,
+"Filip,Duffett",Student,,HTML and CSS,English,03/14/2026,771,PASS,51 min 52 sec,,,
+"Graig,McCosh",Student,,HTML and CSS,English,03/14/2026,718,PASS,50 min 3 sec,,,
+"Mariska,Shawyer",Student,,Network Security,English,03/14/2026,869,PASS,47 min 23 sec,,,
+"Nikoletta,Holston",Student,,Artificial Intelligence,English,03/14/2026,587,FAIL,35 min 28 sec,,,
+"Bill,Trotton",Student,,HTML and CSS,English,03/14/2026,753,PASS,49 min 27 sec,,,
+"Maurene,Endon",Student,,HTML and CSS,English,03/14/2026,670,FAIL,50 min 9 sec,,,
+"Lorie,Pirrie",Student,,HTML and CSS,English,03/14/2026,841,PASS,50 min 57 sec,,,
+"Finley,Gullick",Student,,JavaScript,English,03/14/2026,900,PASS,49 min 35 sec,,,
+"Hortensia,Lindstrom",Student,,HTML and CSS,English,03/14/2026,735,PASS,51 min 49 sec,,,
+"Romy,Copner",Student,,HTML and CSS,English,03/14/2026,771,PASS,52 min 39 sec,,,
+"Thelma,Riddle",Student,,HTML and CSS,English,03/14/2026,788,PASS,52 min 39 sec,,,
+"Tiphani,Waggatt",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,859,PASS,23 min 5 sec,,,
+"Giffy,Chevin",Student,,HTML and CSS,English,03/14/2026,894,PASS,47 min 40 sec,,,
+"Danyette,Dradey",Student,,HTML and CSS,English,03/14/2026,806,PASS,46 min 39 sec,,,
+"August,Stepney",Student,,HTML and CSS,English,03/14/2026,859,PASS,48 min 11 sec,,,
+"Kennie,Doggett",Student,,HTML and CSS,English,03/14/2026,700,PASS,46 min 55 sec,,,
+"Ceciley,Kershow",Student,,HTML and CSS,English,03/14/2026,788,PASS,47 min 40 sec,,,
+"Xylia,Phonix",Student,,Python,English,03/14/2026,455,FAIL,38 min 38 sec,,,
+"Saunders,Longmead",Student,,Cybersecurity,English,03/14/2026,811,PASS,46 min 45 sec,,,
+"Judas,Nutbeem",Student,,Cybersecurity,English,03/14/2026,644,FAIL,37 min 4 sec,,,
+"Eddy,Youle",Student,,Cloud Computing,English,03/14/2026,350,FAIL,45 min 36 sec,,,
+"Delmar,McPeck",Student,,Software Development,English,03/14/2026,700,PASS,45 min 40 sec,,,
+"Goober,Fort",Faculty,,Java,English,03/14/2026,780,PASS,50 min 19 sec,,,
+"Chaunce,Swafield",Faculty,,Java,English,03/14/2026,700,PASS,44 min 36 sec,,,
+"Laurie,Lethbrig",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,771,PASS,47 min 21 sec,,,
+"Alexandre,Doles",Student,,HTML and CSS,English,03/14/2026,841,PASS,47 min 39 sec,,,
+"Berry,Nail",Student,,HTML and CSS,English,03/14/2026,947,PASS,48 min 0 sec,,,
+"Tresa,Zorzenoni",Student,,HTML and CSS,English,03/14/2026,912,PASS,47 min 23 sec,,,
+"Maudie,Iskower",Student,,HTML and CSS,English,03/14/2026,859,PASS,46 min 25 sec,,,
+"Harrie,Howsam",Student,,HTML and CSS,English,03/14/2026,426,FAIL,40 min 51 sec,,,
+"Hernando,McDonand",Student,,HTML and CSS,English,03/14/2026,183,FAIL,36 min 52 sec,,,
+"Alastair,Worpole",Student,,Software Development,English,03/14/2026,869,PASS,48 min 53 sec,,,
+"Nollie,Tudge",Student,,Cybersecurity,English,03/14/2026,874,PASS,45 min 47 sec,,,
+"Danyelle,Stacy",Faculty,,Cloud Computing,English,03/14/2026,850,PASS,46 min 22 sec,,,
+"Roosevelt,Zellner",Student,,HTML and CSS,English,03/14/2026,859,PASS,48 min 57 sec,,,
+"Giuditta,Walklett",Student,,Information Technology Specialist in Networking,English,03/14/2026,672,FAIL,51 min 9 sec,,,
+"Earl,Rattray",Student,,Information Technology Specialist in Networking,English,03/14/2026,880,PASS,50 min 5 sec,,,
+"Vikky,Caisley",Student,,HTML and CSS,English,03/14/2026,517,FAIL,50 min 56 sec,,,
+"Horst,Pimblott",Student,,HTML and CSS,English,03/14/2026,700,PASS,52 min 33 sec,,,
+"Kristel,Dog",Student,,Artificial Intelligence,English,03/14/2026,610,FAIL,50 min 3 sec,,,
+"Randa,Pessold",Student,,Python,English,03/14/2026,920,PASS,50 min 3 sec,,,
+"Hurleigh,De Carlo",Student,,Python,English,03/14/2026,840,PASS,50 min 19 sec,,,
+"Ignacio,Digby",Student,,Python,English,03/14/2026,880,PASS,49 min 53 sec,,,
+"Barby,Pail",Student,,Python,English,03/14/2026,920,PASS,49 min 22 sec,,,
+"Brennan,Hansana",Student,,HTML and CSS,English,03/14/2026,929,PASS,53 min 1 sec,,,
+"Nathanael,Pedler",Student,,HTML and CSS,English,03/14/2026,788,PASS,53 min 37 sec,,,
+"Shepherd,Nuttall",Student,,HTML and CSS,English,03/14/2026,859,PASS,54 min 35 sec,,,
+"Benjie,Trouel",Student,,HTML and CSS,English,03/14/2026,859,PASS,48 min 10 sec,,,
+"Celka,Soffe",Student,,HTML and CSS,English,03/14/2026,639,FAIL,53 min 43 sec,,,
+"Haze,Coster",Student,,Information Technology Specialist in Networking,English,03/14/2026,940,PASS,46 min 28 sec,,,
+"Adoree,Arbor",Student,,HTML and CSS,English,03/14/2026,859,PASS,43 min 17 sec,,,
+"Glennis,Niave",Student,,HTML and CSS,English,03/14/2026,876,PASS,41 min 36 sec,,,
+"Orland,Darter",Student,,HTML and CSS,English,03/14/2026,894,PASS,29 min 22 sec,,,
+"Jereme,Perse",Student,,HTML and CSS,English,03/14/2026,912,PASS,48 min 47 sec,,,
+"Prissie,Ashborn",Student,,HTML and CSS,English,03/14/2026,876,PASS,47 min 20 sec,,,
+"Alfi,Tefft",Student,,Python,English,03/14/2026,860,PASS,46 min 51 sec,,,
+"Kimberlee,Gulston",Student,,HTML and CSS,English,03/14/2026,929,PASS,40 min 0 sec,,,
+"Hadley,Loosemore",Student,,Software Development,English,03/14/2026,738,PASS,50 min 19 sec,,,
+"Jourdain,Enticott",Student,,Cybersecurity,English,03/14/2026,700,PASS,46 min 8 sec,,,
+"Dulciana,Shillabeer",Student,,Cybersecurity,English,03/14/2026,504,FAIL,44 min 57 sec,,,
+"Perry,Nunns",Student,,Software Development,English,03/14/2026,642,FAIL,49 min 47 sec,,,
+"Zia,Prott",Student,,Artificial Intelligence,English,03/14/2026,716,PASS,22 min 25 sec,,,
+"Molly,Garfath",Student,,Python,English,03/14/2026,900,PASS,43 min 3 sec,,,
+"Ernst,Fisby",Student,,Cybersecurity,English,03/14/2026,716,PASS,40 min 37 sec,,,
+"Alexander,Rudloff",Student,,Device Configuration and Management (Windows 11),English,03/14/2026,771,PASS,49 min 51 sec,,,
+"Tad,Piggott",Student,,HTML and CSS,English,03/14/2026,929,PASS,49 min 46 sec,,,
+"Martyn,Arias",Student,,Python,English,03/14/2026,455,FAIL,49 min 30 sec,,,
+"Desdemona,Peskett",Student,,Python,English,03/14/2026,525,FAIL,49 min 34 sec,,,
+"Gregg,Casajuana",Student,,Cloud Computing,English,03/14/2026,775,PASS,42 min 48 sec,,,
+"Rube,Hender",Student,,Cybersecurity,English,03/14/2026,700,PASS,34 min 17 sec,,,
+"Aldous,Chapiro",NTE,,Information Technology Specialist in Networking,English,03/14/2026,980,PASS,23 min 59 sec,,,
+"Minni,Laverock",NTE,,Artificial Intelligence,English,03/14/2026,811,PASS,49 min 44 sec,,,
+"Cozmo,Owenson",NTE,,Artificial Intelligence,English,03/14/2026,474,FAIL,45 min 9 sec,,,
+"Florry,Priddle",Faculty,,Artificial Intelligence,English,03/14/2026,632,FAIL,49 min 49 sec,,,`;
+
+/* ═══════════════════════════════════════════════════════
+   parseCSVLine — splits one raw CSV line by comma,
+   respecting double-quoted fields that contain commas.
+   ═══════════════════════════════════════════════════════ */
+function parseCSVLine(line) {
+  const fields = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if      (ch === '"')         { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+    else                         { cur += ch; }
+  }
+  fields.push(cur.trim());
+  return fields;
+}
+
+/* ═══════════════════════════════════════════════════════
+   parseCSV — converts raw CSV text into:
+     headers : string[]       (first line, split by comma)
+     rows    : string[][]     (every subsequent line, split by comma)
+   This exactly mirrors what the Java code does:
+     headers = line.split(",")  on firstLine
+     rows.add(values)           on all other lines
+   ═══════════════════════════════════════════════════════ */
+function parseCSV(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const headers = lines[0].split(',');   // Java: String[] values = line.split(",")
+  const rows    = [];
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',');  // Java: String[] values = line.split(",")
+    rows.push(values);
+  }
+  return { headers, rows };
+}
+
+/* ═══════════════════════════════════════════════════════
+   parseCSVSmart — same as parseCSV but uses quote-aware
+   parsing for the structured MP10/MP11 modules.
+   ═══════════════════════════════════════════════════════ */
+function parseCSVSmart(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const f = parseCSVLine(lines[i]);
+    if (f.length < 9) continue;
+    records.push({
+      candidate: f[0], type: f[1],
+      exam: f[3], language: f[4], examDate: f[5],
+      score: f[6], result: f[7], timeUsed: f[8],
+    });
+  }
+  return records;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════════════════
+   pad — pads/truncates a string to exactly `width` chars.
+   Mirrors Java's System.out.printf("%-15s", value)
+   ═══════════════════════════════════════════════════════ */
+function pad(str, width) {
+  const s = String(str);
+  // Truncate if longer than width, then pad with spaces to reach width
+  return s.substring(0, width).padEnd(width);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MP12 — Formatted Table Output
+   Exactly mirrors the Java output:
+     - Print each header with %-15s (15-char left-padded)
+     - Print a dash separator: "-".repeat(headers.length * 15)
+     - Print each row's values with %-15s
+   ═══════════════════════════════════════════════════════ */
+function renderMP12(headers, rows) {
+  const COL = 15; // Java uses %-15s for every column
+
+  // Build header line — each header padded to 15 chars
+  const headerLine = headers.map(h => pad(h, COL)).join('');
+
+  // Build separator line — headers.length * 15 dashes
+  const sepLine = '-'.repeat(headers.length * COL);
+
+  // Build each data row — each value padded to 15 chars
+  const dataLines = rows.map(row =>
+    row.map(val => pad(val, COL)).join('')
+  );
+
+  // Render as a scrollable console-style block
+  document.getElementById('mp12-content').innerHTML = `
+    <div class="console-wrap">
+      <div class="console-out"><span class="hdr">${esc(headerLine)}</span>
+<span class="sep">${esc(sepLine)}</span>
+${dataLines.map(l => esc(l)).join('\n')}</div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MP10 — Detect Duplicate Records
+   ═══════════════════════════════════════════════════════ */
+function renderMP10(records) {
+  const keyCount = new Map(), keyRecord = new Map();
+  for (const rec of records) {
+    const key = `${rec.candidate}|${rec.exam}|${rec.examDate}|${rec.score}|${rec.result}`;
+    keyCount.set(key,  (keyCount.get(key)  || 0) + 1);
+    keyRecord.set(key, rec);
+  }
+  const dups = [...keyCount.entries()].filter(([,c]) => c > 1);
+
+  if (dups.length === 0) {
+    document.getElementById('mp10-content').innerHTML = `
+      <div class="no-dups">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        No duplicate records detected across all ${records.length} entries.
+      </div>`;
+  } else {
+    const rows = dups.map(([key, cnt]) => {
+      const r = keyRecord.get(key);
+      return `<tr>
+        <td>${esc(r.candidate)}</td><td>${esc(r.type)}</td><td>${esc(r.exam)}</td>
+        <td>${esc(r.examDate)}</td><td>${esc(r.score)}</td>
+        <td><span class="badge ${r.result==='PASS'?'pass':'fail'}">${esc(r.result)}</span></td>
+        <td><span class="badge dup">×${cnt}</span></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('mp10-content').innerHTML = `
+      <div class="table-wrap"><table>
+        <thead><tr><th>Candidate</th><th>Type</th><th>Exam</th><th>Date</th><th>Score</th><th>Result</th><th>Count</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MP11 — Frequency Count by Column
+   ═══════════════════════════════════════════════════════ */
+function renderMP11(records) {
+  const total = records.length;
+
+  function countField(field) {
+    const m = new Map();
+    for (const r of records) { const v=r[field]; if(v) m.set(v,(m.get(v)||0)+1); }
+    return [...m.entries()].sort((a,b) => b[1]-a[1]);
+  }
+
+  function section(title, freq, colorFn) {
+    const rows = freq.map(([val, cnt]) => {
+      const pct = ((cnt/total)*100).toFixed(1);
+      return `<div class="freq-row">
+        <div class="freq-label" title="${esc(val)}">${esc(val)}</div>
+        <div class="freq-bar-track">
+          <div class="freq-bar" style="background:${colorFn(val)}" data-pct="${pct}"></div>
+        </div>
+        <div class="freq-cnt">${cnt}</div>
+        <div class="freq-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+    return `<div class="freq-section"><h3>${title}</h3>${rows}</div>`;
+  }
+
+  document.getElementById('mp11-content').innerHTML =
+    section('Exam Frequency',           countField('exam'),   ()  => 'var(--accent)') +
+    section('Result Frequency',         countField('result'), v   => v==='PASS'?'var(--pass)':'var(--fail)') +
+    section('Candidate Type Frequency', countField('type'),   ()  => 'var(--accent2)');
+
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll('.freq-bar').forEach(b => { b.style.width = b.dataset.pct + '%'; })
+  ));
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAB SWITCHING
+   ═══════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  })
+);
+
+/* ═══════════════════════════════════════════════════════
+   INIT — parse CSV and render all three MPs
+   ═══════════════════════════════════════════════════════ */
+const { headers, rows } = parseCSV(CSV_DATA);    // for MP12 (raw split like Java)
+const records            = parseCSVSmart(CSV_DATA); // for MP10/MP11 (quote-aware)
+
+// Top stat bar
+const pass = records.filter(r => r.result==='PASS').length;
+const rate = ((pass/records.length)*100).toFixed(1);
+document.getElementById('statbar').innerHTML =
+  `<div class="stat blue">${records.length} Total Records</div>
+   <div class="stat green">PASS — ${pass}</div>
+   <div class="stat red">FAIL — ${records.length-pass}</div>
+   <div class="stat orange">${rate}% Pass Rate</div>`;
+
+renderMP12(headers, rows); // MP12: plain 15-char padded table like Java
+renderMP10(records);       // MP10: duplicate detection
+renderMP11(records);       // MP11: frequency count
+</script>
+</body>
+</html>
